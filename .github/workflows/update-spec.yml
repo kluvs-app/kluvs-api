@@ -27,14 +27,15 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Write spec from payload
+        id: write-spec
         run: |
           SPEC="${{ github.event.client_payload.spec || github.event.inputs.spec_b64 }}"
           if [ -n "$SPEC" ]; then
             echo "$SPEC" | base64 -d > openapi.json
             cp openapi.json docs/openapi.json
-            echo "Spec written from payload."
+            echo "received=true" >> $GITHUB_OUTPUT
           else
-            echo "No spec in payload — using existing spec (testing PR flow only)."
+            echo "received=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Setup Deno
@@ -46,6 +47,7 @@ jobs:
         run: deno task validate
 
       - name: Open pull request
+        id: open-pr
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -61,3 +63,31 @@ jobs:
             ---
             *Opened by the [Update OpenAPI Spec](${{ github.server_url }}/${{ github.repository }}/actions/workflows/update-spec.yml) workflow.*
           labels: automated
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Update OpenAPI Spec" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.write-spec.outputs.received }}" = "true" ]; then
+            echo "📥 **Spec received:** yes (from payload)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "📥 **Spec received:** no (using existing spec)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "🔍 **Validation:** passed" >> $GITHUB_STEP_SUMMARY
+
+          PR_URL="${{ steps.open-pr.outputs.pull-request-url }}"
+          PR_OP="${{ steps.open-pr.outputs.pull-request-operation }}"
+
+          if [ -n "$PR_URL" ]; then
+            echo "🔀 **PR:** ${PR_OP} — [#${{ steps.open-pr.outputs.pull-request-number }}](${PR_URL})" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **PR:** none opened (no spec changes detected)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          SOURCE="${{ github.event.client_payload.source_sha }}"
+          if [ -n "$SOURCE" ]; then
+            echo "🔗 **Source commit:** \`${SOURCE}\`" >> $GITHUB_STEP_SUMMARY
+          fi
