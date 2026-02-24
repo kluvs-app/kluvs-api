@@ -1,6 +1,13 @@
 {
   // Deno configuration for the kluvs-api spec repository
   "tasks": {
-    "validate": "deno run --allow-read tools/validate-openapi.ts"
+    "validate": "deno run --allow-read tools/validate-openapi.ts",
+
+    // Smoke-test dispatch to this repo's update-spec.yml (requires KLUVS_API_PAT in .env.local)
+    "dispatch:no-spec": "deno run --allow-net --allow-env --env-file=.env.local tools/dispatch.ts"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "strict": true
   }
 }
