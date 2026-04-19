@@ -17,6 +17,39 @@
   ],
   "paths": {
     "/club": {
+      "delete": {
+        "summary": "Delete Club",
+        "description": "Permanently remove a club and all its history.",
+        "tags": [
+          "Club"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "server_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Optional security check to ensure club belongs to server."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted successfully"
+          },
+          "404": {
+            "description": "Club not found"
+          }
+        }
+      },
       "get": {
         "summary": "Retrieve Club Details",
         "description": "Get a club by ID, or find a club by Discord channel ID + Server ID.",
@@ -62,6 +95,58 @@
           },
           "400": {
             "description": "Missing required parameters"
+          },
+          "404": {
+            "description": "Club not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Club",
+        "description": "Update club details like name, channel, or shame list.",
+        "tags": [
+          "Club"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "discord_channel": {
+                    "type": "string"
+                  },
+                  "founded_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "server_id": {
+                    "type": "string"
+                  },
+                  "shame_list": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Club updated"
           },
           "404": {
             "description": "Club not found"
@@ -146,64 +231,14 @@
             "description": "Server not found (if server_id provided)"
           }
         }
-      },
-      "put": {
-        "summary": "Update Club",
-        "description": "Update club details like name, channel, or shame list.",
-        "tags": [
-          "Club"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "discord_channel": {
-                    "type": "string"
-                  },
-                  "founded_date": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "server_id": {
-                    "type": "string"
-                  },
-                  "shame_list": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Club updated"
-          },
-          "404": {
-            "description": "Club not found"
-          }
-        }
-      },
+      }
+    },
+    "/member": {
       "delete": {
-        "summary": "Delete Club",
-        "description": "Permanently remove a club and all its history.",
+        "summary": "Delete Member",
+        "description": "Delete a member and all their data (shame list entries, club associations).",
         "tags": [
-          "Club"
+          "Member"
         ],
         "parameters": [
           {
@@ -211,32 +246,22 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "server_id",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "description": "Optional security check to ensure club belongs to server."
+              "type": "integer"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Deleted successfully"
+            "description": "Member deleted successfully"
           },
           "404": {
-            "description": "Club not found"
+            "description": "Member not found"
           }
         }
-      }
-    },
-    "/member": {
+      },
       "get": {
         "summary": "Retrieve Member Details",
-        "description": "Get member details by internal integer ID or linked Auth User ID (UUID).",
+        "description": "Get member details by internal integer ID, linked Auth User ID (UUID), or Discord ID.",
         "tags": [
           "Member"
         ],
@@ -256,6 +281,14 @@
               "type": "string",
               "format": "uuid",
               "description": "The linked Supabase Auth User ID."
+            }
+          },
+          {
+            "name": "discord_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "The Discord user snowflake ID."
             }
           }
         ],
@@ -319,6 +352,77 @@
           }
         }
       },
+      "put": {
+        "summary": "Update Member",
+        "description": "Update member details. Can add/remove club associations, and update per-club roles.",
+        "tags": [
+          "Member"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "books_read": {
+                    "type": "integer"
+                  },
+                  "handle": {
+                    "type": "string"
+                  },
+                  "avatar_path": {
+                    "type": "string"
+                  },
+                  "discord_id": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Discord user snowflake ID. Pass null to clear it."
+                  },
+                  "clubs": {
+                    "type": "array",
+                    "description": "Full list of Club IDs this member should belong to. Diffed against existing to add/remove.",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "club_roles": {
+                    "type": "object",
+                    "description": "Map of club_id → role to update per-club roles. Valid roles are admin and member (owner cannot be assigned or changed via this endpoint).",
+                    "additionalProperties": {
+                      "type": "string",
+                      "enum": [
+                        "admin",
+                        "member"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member updated"
+          },
+          "400": {
+            "description": "Invalid input (e.g. clubs is not an array, or attempting to assign owner role)"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        }
+      },
       "post": {
         "summary": "Create New Member",
         "description": "Creates a new member and links them to specific clubs.",
@@ -357,6 +461,10 @@
                     "type": "string",
                     "description": "Path to the avatar image in storage."
                   },
+                  "discord_id": {
+                    "type": "string",
+                    "description": "Discord user snowflake ID. Stored as text to preserve precision."
+                  },
                   "id": {
                     "type": "integer",
                     "description": "Optional explicit ID. Omit to let the DB sequence assign one."
@@ -377,78 +485,14 @@
             "description": "One or more provided Club IDs do not exist"
           }
         }
-      },
-      "put": {
-        "summary": "Update Member",
-        "description": "Update member details. Can add/remove club associations, and update per-club roles.",
-        "tags": [
-          "Member"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "integer"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "books_read": {
-                    "type": "integer"
-                  },
-                  "handle": {
-                    "type": "string"
-                  },
-                  "avatar_path": {
-                    "type": "string"
-                  },
-                  "clubs": {
-                    "type": "array",
-                    "description": "Full list of Club IDs this member should belong to. Diffed against existing to add/remove.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "club_roles": {
-                    "type": "object",
-                    "description": "Map of club_id → role to update per-club roles. Valid roles are admin and member (owner cannot be assigned or changed via this endpoint).",
-                    "additionalProperties": {
-                      "type": "string",
-                      "enum": [
-                        "admin",
-                        "member"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Member updated"
-          },
-          "400": {
-            "description": "Invalid input (e.g. clubs is not an array, or attempting to assign owner role)"
-          },
-          "404": {
-            "description": "Member not found"
-          }
-        }
-      },
+      }
+    },
+    "/server": {
       "delete": {
-        "summary": "Delete Member",
-        "description": "Delete a member and all their data (shame list entries, club associations).",
+        "summary": "Delete Server",
+        "description": "Deletes a server. Fails if the server still contains clubs.",
         "tags": [
-          "Member"
+          "Server"
         ],
         "parameters": [
           {
@@ -456,21 +500,22 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Member deleted successfully"
+            "description": "Server deleted successfully"
+          },
+          "400": {
+            "description": "Cannot delete server because it has existing clubs"
           },
           "404": {
-            "description": "Member not found"
+            "description": "Server not found"
           }
         }
-      }
-    },
-    "/server": {
+      },
       "get": {
         "summary": "Retrieve servers",
         "description": "Fetches all servers (with their clubs) OR a specific server if 'id' is provided.",
@@ -528,6 +573,45 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Server not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Server",
+        "description": "Update the name of an existing server.",
+        "tags": [
+          "Server"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server updated successfully"
+          },
+          "400": {
+            "description": "Missing ID or no fields to update"
           },
           "404": {
             "description": "Server not found"
@@ -594,51 +678,14 @@
             "description": "Internal server error"
           }
         }
-      },
-      "put": {
-        "summary": "Update Server",
-        "description": "Update the name of an existing server.",
-        "tags": [
-          "Server"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Server updated successfully"
-          },
-          "400": {
-            "description": "Missing ID or no fields to update"
-          },
-          "404": {
-            "description": "Server not found"
-          }
-        }
-      },
+      }
+    },
+    "/session": {
       "delete": {
-        "summary": "Delete Server",
-        "description": "Deletes a server. Fails if the server still contains clubs.",
+        "summary": "Delete Session",
+        "description": "Delete a session, including its discussions and the associated book.",
         "tags": [
-          "Server"
+          "Session"
         ],
         "parameters": [
           {
@@ -652,18 +699,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Server deleted successfully"
-          },
-          "400": {
-            "description": "Cannot delete server because it has existing clubs"
+            "description": "Session deleted successfully"
           },
           "404": {
-            "description": "Server not found"
+            "description": "Session not found"
           }
         }
-      }
-    },
-    "/session": {
+      },
       "get": {
         "summary": "Retrieve Session",
         "description": "Get full details for a session, including book, club, discussions, and the current shame list.",
@@ -709,6 +751,73 @@
           },
           "400": {
             "description": "Missing session ID"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Session",
+        "description": "Update session details, including nested book updates and discussion management (add/update/delete).",
+        "tags": [
+          "Session"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "club_id": {
+                    "type": "string"
+                  },
+                  "due_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "book": {
+                    "type": "object",
+                    "description": "Fields to update on the associated book.",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "author": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "discussions": {
+                    "type": "array",
+                    "description": "List of discussions to add (new IDs) or update (existing IDs).",
+                    "items": {
+                      "$ref": "#/components/schemas/Discussion"
+                    }
+                  },
+                  "discussion_ids_to_delete": {
+                    "type": "array",
+                    "description": "List of discussion IDs to remove.",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session updated successfully"
           },
           "404": {
             "description": "Session not found"
@@ -802,98 +911,6 @@
           },
           "404": {
             "description": "Club not found, or book_id not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update Session",
-        "description": "Update session details, including nested book updates and discussion management (add/update/delete).",
-        "tags": [
-          "Session"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "club_id": {
-                    "type": "string"
-                  },
-                  "due_date": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "book": {
-                    "type": "object",
-                    "description": "Fields to update on the associated book.",
-                    "properties": {
-                      "title": {
-                        "type": "string"
-                      },
-                      "author": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "discussions": {
-                    "type": "array",
-                    "description": "List of discussions to add (new IDs) or update (existing IDs).",
-                    "items": {
-                      "$ref": "#/components/schemas/Discussion"
-                    }
-                  },
-                  "discussion_ids_to_delete": {
-                    "type": "array",
-                    "description": "List of discussion IDs to remove.",
-                    "items": {
-                      "type": "string",
-                      "format": "uuid"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Session updated successfully"
-          },
-          "404": {
-            "description": "Session not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Session",
-        "description": "Delete a session, including its discussions and the associated book.",
-        "tags": [
-          "Session"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Session deleted successfully"
-          },
-          "404": {
-            "description": "Session not found"
           }
         }
       }
@@ -1150,6 +1167,11 @@
             "type": "string",
             "format": "uuid",
             "description": "Linked Supabase Auth User ID"
+          },
+          "discord_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Discord user snowflake ID. Stored as TEXT to preserve JSON precision."
           },
           "created_at": {
             "type": "string",
