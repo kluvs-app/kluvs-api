@@ -1,0 +1,54 @@
+#
+# Notifies downstream consumers when openapi.json changes on main.
+#
+# Triggered by:
+#   - push to main — only when openapi.json is modified
+#
+# Sends base64-encoded spec as repository_dispatch[api-spec-updated] to:
+#   - kluvs-bot
+#
+
+name: Notify Consumers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - openapi.json
+
+jobs:
+  notify:
+    name: Dispatch api-spec-updated to consumers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Dispatch to consumers
+        env:
+          DISPATCH_PAT: ${{ secrets.DISPATCH_PAT }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_REPO: ${{ github.repository }}
+          OWNER: kluvs-app
+        run: |
+          SPEC_B64=$(base64 -w 0 openapi.json)
+          for REPO in \
+            kluvs-bot \
+          ; do
+            echo "Dispatching to ${OWNER}/${REPO}..."
+            curl -fSs -X POST \
+              -H "Authorization: token ${DISPATCH_PAT}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Content-Type: application/json" \
+              "https://api.github.com/repos/${OWNER}/${REPO}/dispatches" \
+              -d "{\"event_type\":\"api-spec-updated\",\"client_payload\":{\"spec\":\"${SPEC_B64}\",\"source_sha\":\"${SOURCE_SHA}\",\"source_repo\":\"${SOURCE_REPO}\"}}"
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Notify Consumers" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📤 **Event:** \`api-spec-updated\` dispatched to consumers" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Source commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
