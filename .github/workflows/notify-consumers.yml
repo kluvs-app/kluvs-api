@@ -27,7 +27,7 @@ jobs:
 
       - name: Dispatch to consumers
         env:
-          BOT_PAT: ${{ secrets.BOT_PAT }}
+          DISPATCH_PAT: ${{ secrets.DISPATCH_PAT }}
           SOURCE_SHA: ${{ github.sha }}
           SOURCE_REPO: ${{ github.repository }}
           OWNER: kluvs-app
@@ -38,7 +38,7 @@ jobs:
           ; do
             echo "Dispatching to ${OWNER}/${REPO}..."
             curl -fSs -X POST \
-              -H "Authorization: token ${BOT_PAT}" \
+              -H "Authorization: token ${DISPATCH_PAT}" \
               -H "Accept: application/vnd.github+json" \
               -H "Content-Type: application/json" \
               "https://api.github.com/repos/${OWNER}/${REPO}/dispatches" \
