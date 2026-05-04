@@ -388,6 +388,11 @@
                     "nullable": true,
                     "description": "Discord user snowflake ID. Pass null to clear it."
                   },
+                  "platform_metadata": {
+                    "type": "object",
+                    "description": "Flexible JSON object for platform-specific data. Replaces the entire field — callers must Read-Modify-Write.",
+                    "additionalProperties": true
+                  },
                   "clubs": {
                     "type": "array",
                     "description": "Full list of Club IDs this member should belong to. Diffed against existing to add/remove.",
@@ -464,6 +469,11 @@
                   "discord_id": {
                     "type": "string",
                     "description": "Discord user snowflake ID. Stored as text to preserve precision."
+                  },
+                  "platform_metadata": {
+                    "type": "object",
+                    "description": "Flexible JSON object for platform-specific data (e.g., Discord Top.gg votes). Defaults to {}.",
+                    "additionalProperties": true
                   },
                   "id": {
                     "type": "integer",
@@ -891,6 +901,11 @@
                           "type": "string",
                           "format": "date-time"
                         },
+                        "time": {
+                          "type": "string",
+                          "format": "time",
+                          "description": "Discussion time (HH:MM:SS)"
+                        },
                         "location": {
                           "type": "string"
                         }
@@ -1173,6 +1188,12 @@
             "nullable": true,
             "description": "Discord user snowflake ID. Stored as TEXT to preserve JSON precision."
           },
+          "platform_metadata": {
+            "type": "object",
+            "description": "Flexible JSON object for platform-specific data (e.g., Discord Top.gg votes).",
+            "additionalProperties": true,
+            "default": {}
+          },
           "created_at": {
             "type": "string",
             "format": "date-time"
@@ -1287,6 +1308,11 @@
           "date": {
             "type": "string",
             "format": "date-time"
+          },
+          "time": {
+            "type": "string",
+            "format": "time",
+            "description": "Discussion time (HH:MM:SS)"
           },
           "location": {
             "type": "string",
