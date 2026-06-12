@@ -1,9 +1,13 @@
 #
-# Receives an updated OpenAPI spec from kluvs-backend and opens a self-PR.
+# Receives notice of an updated OpenAPI spec from kluvs-backend, fetches
+# docs/openapi.json from kluvs-backend at the given commit, and opens a self-PR.
 #
 # Triggered by:
 #   - repository_dispatch (spec-updated) — automated, from kluvs-backend
-#   - workflow_dispatch — manual, for testing (provide base64-encoded spec or leave blank)
+#   - workflow_dispatch — manual, for testing (provide a kluvs-backend ref/SHA or leave blank)
+#
+# Secrets required:
+#   KLUVS_BACKEND_PAT — GitHub PAT with read access to kluvs-backend (private repo)
 #
 
 name: Update OpenAPI Spec
@@ -13,8 +17,8 @@ on:
     types: [spec-updated]
   workflow_dispatch:
     inputs:
-      spec_b64:
-        description: 'Base64-encoded openapi.json (optional — omit to test PR flow with current spec)'
+      source_sha:
+        description: 'kluvs-backend ref/SHA to fetch docs/openapi.json from (optional — omit to test PR flow with current spec)'
         required: false
 
 jobs:
@@ -26,12 +30,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Write spec from payload
+      - name: Fetch spec from kluvs-backend
         id: write-spec
+        env:
+          KLUVS_BACKEND_PAT: ${{ secrets.KLUVS_BACKEND_PAT }}
+          SOURCE_SHA: ${{ github.event.client_payload.source_sha || github.event.inputs.source_sha }}
         run: |
-          SPEC="${{ github.event.client_payload.spec || github.event.inputs.spec_b64 }}"
-          if [ -n "$SPEC" ]; then
-            echo "$SPEC" | base64 -d > openapi.json
+          if [ -n "$SOURCE_SHA" ]; then
+            curl -fSs \
+              -H "Authorization: token ${KLUVS_BACKEND_PAT}" \
+              -H "Accept: application/vnd.github.raw" \
+              "https://api.github.com/repos/kluvs-app/kluvs-backend/contents/docs/openapi.json?ref=${SOURCE_SHA}" \
+              -o openapi.json
             cp openapi.json docs/openapi.json
             echo "received=true" >> $GITHUB_OUTPUT
           else
