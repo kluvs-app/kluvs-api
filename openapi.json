@@ -11,7 +11,7 @@
       "description": "Local Development"
     },
     {
-      "url": "https://<project_ref>.supabase.co/functions/v1",
+      "url": "https://ugmntxfkvrnpbmdosdge.supabase.co/functions/v1",
       "description": "Production"
     }
   ],
