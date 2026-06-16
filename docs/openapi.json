@@ -11,7 +11,7 @@
       "description": "Local Development"
     },
     {
-      "url": "https://<project_ref>.supabase.co/functions/v1",
+      "url": "https://ugmntxfkvrnpbmdosdge.supabase.co/functions/v1",
       "description": "Production"
     }
   ],
@@ -494,7 +494,9 @@
                     "type": "string"
                   },
                   "avatar_path": {
-                    "type": "string"
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Storage path of the member's avatar. Must start with `{id}/` (e.g. `42/avatar.png`). Pass null to clear the avatar.\n"
                   },
                   "discord_id": {
                     "type": "string",
