@@ -4,8 +4,14 @@
 # Triggered by:
 #   - push to main — only when openapi.json is modified
 #
-# Sends base64-encoded spec as repository_dispatch[api-spec-updated] to:
-#   - kluvs-bot
+# Sends a lightweight notification (source_sha + source_repo) via repository_dispatch[api-spec-updated].
+# Consumers fetch openapi.json directly from kluvs-api at the given SHA — no spec blob in the payload.
+#
+# Current consumers:
+#   - kluvs-mobile
+#
+# Secrets required:
+#   DISPATCH_PAT — GitHub PAT with repo scope on each consumer repo
 #
 
 name: Notify Consumers
@@ -22,9 +28,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
       - name: Dispatch to consumers
         env:
           DISPATCH_PAT: ${{ secrets.DISPATCH_PAT }}
@@ -32,9 +35,8 @@ jobs:
           SOURCE_REPO: ${{ github.repository }}
           OWNER: kluvs-app
         run: |
-          SPEC_B64=$(base64 -w 0 openapi.json)
           for REPO in \
-            kluvs-bot \
+            kluvs-mobile \
           ; do
             echo "Dispatching to ${OWNER}/${REPO}..."
             curl -fSs -X POST \
@@ -42,7 +44,8 @@ jobs:
               -H "Accept: application/vnd.github+json" \
               -H "Content-Type: application/json" \
               "https://api.github.com/repos/${OWNER}/${REPO}/dispatches" \
-              -d "{\"event_type\":\"api-spec-updated\",\"client_payload\":{\"spec\":\"${SPEC_B64}\",\"source_sha\":\"${SOURCE_SHA}\",\"source_repo\":\"${SOURCE_REPO}\"}}"
+              -d "{\"event_type\":\"api-spec-updated\",\"client_payload\":{\"source_sha\":\"${SOURCE_SHA}\",\"source_repo\":\"${SOURCE_REPO}\"}}"
+            echo "✓ Dispatched to ${OWNER}/${REPO}"
           done
 
       - name: Summary
@@ -50,5 +53,8 @@ jobs:
         run: |
           echo "## Notify Consumers" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📤 **Event:** \`api-spec-updated\` dispatched to consumers" >> $GITHUB_STEP_SUMMARY
+          echo "📤 **Event:** \`api-spec-updated\` dispatched" >> $GITHUB_STEP_SUMMARY
           echo "🔗 **Source commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Consumers notified:**" >> $GITHUB_STEP_SUMMARY
+          echo "- kluvs-mobile" >> $GITHUB_STEP_SUMMARY
