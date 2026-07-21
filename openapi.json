@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Kluvs API",
-    "version": "0.22.0",
+    "version": "0.22.1",
     "description": "Supabase Edge Functions API for managing book clubs."
   },
   "servers": [
@@ -2005,19 +2005,49 @@
             "items": {
               "$ref": "#/components/schemas/Discussion"
             }
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionParticipantSummary"
+            },
+            "description": "Participation roster, as embedded within a club response's active_session."
+          }
+        }
+      },
+      "SessionParticipantSummary": {
+        "type": "object",
+        "description": "A member's participation entry on a session, as embedded within a club response's active_session.members. Distinct from SessionMember: this shape carries member_name instead of session_id.",
+        "required": [
+          "member_id",
+          "member_name",
+          "is_reading"
+        ],
+        "properties": {
+          "member_id": {
+            "type": "integer"
+          },
+          "member_name": {
+            "type": "string"
+          },
+          "is_reading": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether the member is actively reading (vs. opted out)"
           }
         }
       },
       "Book": {
         "type": "object",
         "required": [
-          "id",
           "title",
           "author"
         ],
         "properties": {
           "id": {
-            "type": "integer"
+            "type": "integer",
+            "nullable": true,
+            "description": "Local DB id. Absent/null for Google Books search results that have not been registered yet."
           },
           "title": {
             "type": "string"
