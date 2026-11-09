@@ -9,6 +9,7 @@
 #
 # Current consumers:
 #   - kluvs-mobile
+#   - kluvs-frontend
 #
 # Secrets required:
 #   DISPATCH_PAT — GitHub PAT with repo scope on each consumer repo
@@ -37,6 +38,7 @@ jobs:
         run: |
           for REPO in \
             kluvs-mobile \
+            kluvs-frontend \
           ; do
             echo "Dispatching to ${OWNER}/${REPO}..."
             curl -fSs -X POST \
@@ -58,3 +60,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Consumers notified:**" >> $GITHUB_STEP_SUMMARY
           echo "- kluvs-mobile" >> $GITHUB_STEP_SUMMARY
+          echo "- kluvs-frontend" >> $GITHUB_STEP_SUMMARY
