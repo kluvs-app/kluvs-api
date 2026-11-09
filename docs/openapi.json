@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Kluvs API",
-    "version": "0.26.0",
+    "version": "0.26.1",
     "description": "Supabase Edge Functions API for managing book clubs."
   },
   "servers": [
@@ -1515,6 +1515,51 @@
           }
         },
         "operationId": "setShelf"
+      },
+      "delete": {
+        "summary": "Remove a shelf assignment",
+        "description": "Removes the authenticated user's shelf assignment for a book. Idempotent — no error if the book wasn't shelved.",
+        "tags": [
+          "Shelf"
+        ],
+        "parameters": [
+          {
+            "name": "book_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Local DB book ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shelf assignment removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShelfSingleResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "book_id is required and must be an integer"
+          },
+          "401": {
+            "description": "No valid auth token"
+          },
+          "403": {
+            "description": "Bot callers not permitted"
+          },
+          "404": {
+            "description": "No member record found for the authenticated user"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
       }
     },
     "/progress": {
@@ -1560,7 +1605,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgressListResponse"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReadingProgress"
+                  }
                 }
               }
             }
@@ -1605,7 +1653,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgressEntryResponse"
+                  "$ref": "#/components/schemas/ReadingProgress"
                 }
               }
             }
@@ -1650,7 +1698,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgressEntryResponse"
+                  "$ref": "#/components/schemas/ReadingProgress"
                 }
               }
             }
@@ -3955,20 +4003,6 @@
           }
         }
       },
-      "ProgressListResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "progress": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReadingProgress"
-            }
-          }
-        }
-      },
       "ProgressCreateRequest": {
         "type": "object",
         "required": [
@@ -4035,17 +4069,6 @@
               "in_progress",
               "completed"
             ]
-          }
-        }
-      },
-      "ProgressEntryResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "progress": {
-            "$ref": "#/components/schemas/ReadingProgress"
           }
         }
       },
