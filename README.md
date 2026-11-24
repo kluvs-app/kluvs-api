@@ -28,7 +28,7 @@ deno task validate
 
 Lints `openapi.json` with [Redocly CLI](https://redocly.com/docs/cli/): it checks the spec against the OpenAPI 3.0 schema, checks that every `$ref` resolves, and applies the rules in `redocly.yaml`. Errors fail; warnings are reported only. CI runs the same check on every PR. Requires [Deno](https://deno.land/).
 
-Every PR that changes the spec also gets a **breaking-change report** (oasdiff). It is report only: annotations on the PR and a job summary, never a failure.
+Every PR that changes the spec also gets a **breaking-change report** (oasdiff). It is report only and never fails: annotations on the PR, a job summary, and (when something breaks) a PR comment linking to a side-by-side review on oasdiff.com.
 
 ## Authentication
 

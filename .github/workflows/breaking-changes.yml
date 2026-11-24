@@ -1,8 +1,9 @@
 #
 # Reports breaking API changes on every PR that touches the spec (report only; never fails).
 # Breaking changes are sometimes intended. This makes them visible before merge, so the
-# matching backend/client work can be planned. Results appear as annotations on the PR and
-# in the job summary.
+# matching backend/client work can be planned. Results appear as annotations on the PR, in
+# the job summary and, when there are breaking changes, as a PR comment linking to a
+# side-by-side review on oasdiff.com (specs are encrypted client-side before upload).
 #
 
 name: Breaking Changes
@@ -16,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write # lets the action comment the oasdiff.com review link on the PR
 
 jobs:
   breaking:
@@ -37,6 +39,5 @@ jobs:
         with:
           base: base-openapi.json
           revision: openapi.json
-          # Report only: no fail-on, no upload to oasdiff.com, no PR comment.
-          review: 'false'
-          github-token: ''
+          # Report only: no fail-on. The review upload and PR comment use the action's defaults
+          # (review: true, github-token: github.token).
