@@ -14,11 +14,17 @@ Public API contract for the [Kluvs](https://kluvs.com) platform — a multi-serv
 | `docs/` | Scalar API Reference page for docs.kluvs.com. The `Deploy Docs` workflow publishes it together with the root `openapi.json`; no copy of the spec is committed here |
 | `redocly.yaml`, `.redocly.lint-ignore.yaml` | Lint rules, and the problems that already existed when linting was introduced |
 
-## How this repo is updated
+## How the API changes (spec-first)
 
-The spec is generated and dispatched automatically from `kluvs-backend` on every merge to `main`.
+`openapi.json` here is the API contract, and it is written by hand. Every change to the API starts as a PR in this repo:
 
-Do not edit `openapi.json` directly — it will be overwritten by the next automated update.
+1. **Open a spec PR** editing `openapi.json`. Bump `info.version`: minor for additions, major for breaking changes, patch for documentation-only fixes.
+2. **CI checks it**: Redocly lints it (`deno task validate`), and oasdiff reports any breaking changes (see below).
+3. **Merge it.** `notify-consumers.yml` tells every consumer (kluvs-backend, kluvs-frontend, kluvs-mobile), and each one gets a regen PR with its generated types; their CI runs on it.
+4. **Implement** in the backend and the clients in parallel. The backend reports operations it doesn't implement yet as pending.
+5. **Release the backend first.** A client release must not depend on an operation the backend hasn't released.
+
+The spec's `info.version` belongs to this repo and is independent of the backend's release version.
 
 ## Validate the spec locally
 
