@@ -1,0 +1,42 @@
+#
+# Reports breaking API changes on every PR that touches the spec (report only; never fails).
+# Breaking changes are sometimes intended. This makes them visible before merge, so the
+# matching backend/client work can be planned. Results appear as annotations on the PR and
+# in the job summary.
+#
+
+name: Breaking Changes
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - openapi.json
+      - .github/workflows/breaking-changes.yml
+
+permissions:
+  contents: read
+
+jobs:
+  breaking:
+    name: Report breaking changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Extract base spec
+        run: git show "origin/${{ github.base_ref }}:openapi.json" > base-openapi.json
+
+      - name: Check for breaking changes
+        # oasdiff/oasdiff-action v0.2.1
+        uses: oasdiff/oasdiff-action/breaking@14ca7009a63c417dfe27b7c44359c4bcccaf8eee
+        with:
+          base: base-openapi.json
+          revision: openapi.json
+          # Report only: no fail-on, no upload to oasdiff.com, no PR comment.
+          review: 'false'
+          github-token: ''

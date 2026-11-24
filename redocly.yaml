@@ -1,0 +1,7 @@
+# OpenAPI lint configuration (Redocly CLI). Run locally with `deno task validate`.
+# Errors fail CI; warnings are reported only.
+# Problems that already existed when linting was introduced are listed in
+# .redocly.lint-ignore.yaml. Remove entries there as they are fixed; never add new ones
+# to silence a problem in a new change.
+extends:
+  - recommended

@@ -1,7 +1,9 @@
 {
   // Deno configuration for the kluvs-api spec repository
   "tasks": {
-    "validate": "deno run --allow-read tools/validate-openapi.ts",
+    // Lints openapi.json against the OpenAPI 3.0 schema and redocly.yaml rules (resolves every $ref).
+    // Errors fail; warnings are reported only. Baseline exceptions: .redocly.lint-ignore.yaml.
+    "validate": "REDOCLY_TELEMETRY=off deno run --allow-read --allow-env --allow-sys npm:@redocly/cli@2.82.0 lint openapi.json",
 
     // Smoke-test dispatch to this repo's update-spec.yml (requires KLUVS_API_PAT in .env.local)
     "dispatch:no-spec": "deno run --allow-net --allow-env --env-file=.env.local tools/dispatch.ts"
