@@ -34,6 +34,7 @@ jobs:
         run: git show "origin/${{ github.base_ref }}:openapi.json" > base-openapi.json
 
       - name: Check for breaking changes
+        id: oasdiff
         # oasdiff/oasdiff-action v0.2.1
         uses: oasdiff/oasdiff-action/breaking@14ca7009a63c417dfe27b7c44359c4bcccaf8eee
         with:
@@ -41,3 +42,29 @@ jobs:
           revision: openapi.json
           # Report only: no fail-on. The review upload and PR comment use the action's defaults
           # (review: true, github-token: github.token).
+
+      # Always state the result, so a clean pass is visible too (the action itself stays
+      # silent when nothing breaks).
+      - name: Summary
+        if: always()
+        env:
+          BREAKING: ${{ steps.oasdiff.outputs.breaking }}
+          REVIEW_URL: ${{ steps.oasdiff.outputs.review_url }}
+        run: |
+          {
+            echo "## Breaking changes"
+            echo ""
+            if [ -z "$BREAKING" ]; then
+              echo "✅ No breaking changes"
+            else
+              echo "⚠️ Breaking changes found (report only; this check never fails):"
+              echo ""
+              echo '```'
+              echo "$BREAKING"
+              echo '```'
+              if [ -n "$REVIEW_URL" ]; then
+                echo ""
+                echo "Side-by-side review: $REVIEW_URL"
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
