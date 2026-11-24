@@ -42,7 +42,6 @@ jobs:
               -H "Accept: application/vnd.github.raw" \
               "https://api.github.com/repos/kluvs-app/kluvs-backend/contents/docs/openapi.json?ref=${SOURCE_SHA}" \
               -o openapi.json
-            cp openapi.json docs/openapi.json
             echo "received=true" >> $GITHUB_OUTPUT
           else
             echo "received=false" >> $GITHUB_OUTPUT
