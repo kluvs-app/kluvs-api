@@ -4,6 +4,10 @@
 #
 # Requires Settings → Pages → Build and deployment → Source: "GitHub Actions".
 #
+# If a run fails, start a fresh one (workflow_dispatch) instead of re-running it:
+# re-running the build creates a second github-pages artifact, and the deploy then
+# fails with "multiple artifacts".
+#
 
 name: Deploy Docs
 
@@ -26,12 +30,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Build and deploy
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout
@@ -48,6 +49,15 @@ jobs:
         with:
           path: _site
 
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
