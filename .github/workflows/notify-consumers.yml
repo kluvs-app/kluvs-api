@@ -3,6 +3,8 @@
 #
 # Triggered by:
 #   - push to main — only when openapi.json is modified
+#   - workflow_dispatch — manual re-run (e.g. to check the dispatch works). Consumers regenerate
+#     from main; if nothing changed, they open no PR.
 #
 # Sends a lightweight notification (source_sha + source_repo) via repository_dispatch[api-spec-updated].
 # Consumers fetch openapi.json directly from kluvs-api at the given SHA — no spec blob in the payload.
@@ -12,8 +14,10 @@
 #   - kluvs-frontend
 #   - kluvs-backend
 #
-# Secrets required:
-#   DISPATCH_PAT — GitHub PAT with repo scope on each consumer repo
+# Secrets required (org secrets, available to public repos):
+#   SPEC_BOT_CLIENT_ID, SPEC_BOT_PRIVATE_KEY — the kluvs-spec-bot GitHub App. The job mints a
+#   short-lived token scoped to the consumer repos with contents: write, which is what
+#   repository_dispatch requires. The App must stay installed on every consumer repo.
 #
 
 name: Notify Consumers
@@ -23,6 +27,9 @@ on:
     branches: [main]
     paths:
       - openapi.json
+  workflow_dispatch:
+
+permissions: {}
 
 jobs:
   notify:
@@ -30,9 +37,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Mint consumer dispatch token
+        id: dispatch-token
+        # actions/create-github-app-token v3.4.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc
+        with:
+          client-id: ${{ secrets.SPEC_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.SPEC_BOT_PRIVATE_KEY }}
+          owner: kluvs-app
+          repositories: kluvs-mobile,kluvs-frontend,kluvs-backend
+          permission-contents: write
+
       - name: Dispatch to consumers
         env:
-          DISPATCH_PAT: ${{ secrets.DISPATCH_PAT }}
+          DISPATCH_TOKEN: ${{ steps.dispatch-token.outputs.token }}
           SOURCE_SHA: ${{ github.sha }}
           SOURCE_REPO: ${{ github.repository }}
           OWNER: kluvs-app
@@ -44,7 +62,7 @@ jobs:
           ; do
             echo "Dispatching to ${OWNER}/${REPO}..."
             curl -fSs -X POST \
-              -H "Authorization: token ${DISPATCH_PAT}" \
+              -H "Authorization: Bearer ${DISPATCH_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
               -H "Content-Type: application/json" \
               "https://api.github.com/repos/${OWNER}/${REPO}/dispatches" \
