@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Kluvs API",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Supabase Edge Functions API for managing book clubs."
   },
   "servers": [
@@ -1286,6 +1286,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "object",
                   "nullable": true,
                   "allOf": [
                     {
@@ -2014,6 +2015,7 @@
                 }
               },
               "active_session": {
+                "type": "object",
                 "allOf": [
                   {
                     "$ref": "#/components/schemas/Session"
@@ -2422,6 +2424,7 @@
         ],
         "properties": {
           "volumeInfo": {
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/BookVolumeInfo"
@@ -2430,6 +2433,7 @@
             "nullable": true
           },
           "authorInfo": {
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AuthorInfo"
@@ -2545,6 +2549,7 @@
             "nullable": true
           },
           "book": {
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/BookSummary"
@@ -3439,6 +3444,7 @@
             "description": "When the session was finished. Null while the session is active."
           },
           "books": {
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ServerClubLatestSessionBook"
@@ -4355,6 +4361,7 @@
             "type": "boolean"
           },
           "shelf": {
+            "type": "string",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ShelfStatus"
