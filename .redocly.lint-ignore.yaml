@@ -5,14 +5,6 @@ openapi.json:
     - '#/info'
   no-server-example.com:
     - '#/servers/0/url'
-  nullable-type-sibling:
-    - '#/components/schemas/ClubDetail/allOf/1/properties/active_session/nullable'
-    - '#/components/schemas/ServerClubLatestSession/properties/books/nullable'
-    - '#/paths/~1discussion-note/get/responses/200/content/application~1json/schema/nullable'
-    - '#/components/schemas/ShelfSingleResponse/properties/shelf/nullable'
-    - '#/components/schemas/ReadingProgress/properties/book/nullable'
-    - '#/components/schemas/BookEnrichmentResponse/properties/volumeInfo/nullable'
-    - '#/components/schemas/BookEnrichmentResponse/properties/authorInfo/nullable'
   no-illogical-composition-keywords:
     - '#/paths/~1member/put/responses/200/content/application~1json/schema/oneOf'
     - '#/paths/~1session/put/responses/200/content/application~1json/schema/oneOf'
